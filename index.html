@@ -1,0 +1,2562 @@
+<!doctype html>
+<!-- latest: shiwakezaru_v2_9_result_ranking / created 2026-06-10 -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7efe2" />
+  <title>仕分けざる</title>
+  <meta name="description" content="99匹の猿を同じ絵文字のエリアへ仕分けよう。正解+10、ミス−10、逃し−15。" />
+  <link rel="canonical" href="https://chameleonjp.codeberg.page/shiwakezaru/" />
+  <meta property="og:title" content="仕分けざる" />
+  <meta property="og:url" content="https://chameleonjp.codeberg.page/shiwakezaru/" />
+  <meta property="og:description" content="99匹の猿を同じ絵文字のエリアへ仕分けよう。" />
+  <style>
+    :root {
+      --bg: #f7efe2;
+      --bg2: #fff9ef;
+      --ink: #2b2118;
+      --muted: #746457;
+      --card: rgba(255, 252, 245, 0.96);
+      --line: rgba(67, 49, 32, 0.16);
+      --main: #7d4b22;
+      --main2: #a66831;
+      --accent: #2f8f83;
+      --danger: #c94a4a;
+      --cyan: #9be8ff;
+      --pink: #ffacd4;
+      --red: #ff6f6f;
+      --shadow: 0 18px 42px rgba(65, 42, 21, 0.18);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      min-height: 100svh;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255, 213, 130, 0.54), transparent 30%),
+        radial-gradient(circle at 82% 0%, rgba(157, 224, 185, 0.55), transparent 28%),
+        linear-gradient(180deg, #fff8ea 0%, #f3e3cd 100%);
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    button,
+    input,
+    a {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      -webkit-touch-callout: default;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .app {
+      width: 100%;
+      min-height: 100svh;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100svh;
+      padding: calc(18px + var(--safe-top)) calc(14px + var(--safe-right)) calc(18px + var(--safe-bottom)) calc(14px + var(--safe-left));
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .home-screen,
+    .result-screen,
+    .countdown-screen {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      width: min(100%, 430px);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 22px 18px 18px;
+    }
+
+    .title-block {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .game-mark {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 8px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #fff2c7, #ccebd6);
+      border: 1px solid rgba(83, 57, 25, 0.14);
+      font-size: 42px;
+      box-shadow: inset 0 -8px 20px rgba(101, 62, 15, 0.08);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 8vw, 42px);
+      letter-spacing: 0.08em;
+      line-height: 1.05;
+    }
+
+    .lead {
+      margin: 10px auto 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 330px;
+    }
+
+    .best-box,
+    .notice-box,
+    .score-panel,
+    .rank-panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.66);
+      border-radius: 18px;
+    }
+
+    .best-box {
+      margin: 16px 0 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    .best-box .label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .best-box .value {
+      font-size: 18px;
+    }
+
+
+    .player-box {
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.66);
+      border-radius: 18px;
+    }
+
+    .player-box .label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .player-box strong {
+      display: block;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .mini-btn {
+      flex: 0 0 auto;
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(92, 65, 33, 0.16);
+      color: var(--main);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .notice-box {
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 12px 0 14px;
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 999px;
+      padding: 11px 14px;
+      font-weight: 850;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: linear-gradient(180deg, var(--main2), var(--main));
+      box-shadow: 0 8px 16px rgba(95, 55, 21, 0.22);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 5px 10px rgba(95, 55, 21, 0.18);
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: #fff4da;
+      border: 1px solid rgba(111, 74, 38, 0.18);
+      box-shadow: none;
+    }
+
+    .btn.ghost {
+      color: var(--main);
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(125, 75, 34, 0.22);
+      box-shadow: none;
+    }
+
+    .btn.danger {
+      background: linear-gradient(180deg, #d76f64, #b94343);
+    }
+
+    .btn.small {
+      min-height: 40px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .countdown-card {
+      width: min(100%, 360px);
+      text-align: center;
+      background: rgba(255, 252, 245, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 36px 22px;
+    }
+
+    .countdown-number {
+      font-size: clamp(72px, 24vw, 112px);
+      line-height: 1;
+      font-weight: 950;
+      color: var(--main);
+      text-shadow: 0 8px 0 rgba(125, 75, 34, 0.08);
+    }
+
+    .countdown-caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .countdown-preview {
+      position: relative;
+      width: min(100%, 560px);
+      height: min(78svh, 640px);
+      min-height: 430px;
+      border-radius: 32px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.8), transparent 38%),
+        linear-gradient(180deg, rgba(219, 238, 203, 0.72), rgba(241, 215, 177, 0.82));
+      border: 1px solid rgba(80, 58, 31, 0.12);
+      box-shadow: var(--shadow);
+    }
+
+    .countdown-preview::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 252, 245, 0.08);
+      pointer-events: none;
+    }
+
+    .countdown-preview .countdown-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(78%, 320px);
+      z-index: 3;
+      padding: 30px 18px;
+      background: rgba(255, 252, 245, 0.9);
+      backdrop-filter: blur(8px);
+    }
+
+
+    .game-screen {
+      flex-direction: column;
+      height: 100svh;
+      min-height: 100svh;
+      padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.96), rgba(239, 225, 199, 0.98)),
+        repeating-linear-gradient(90deg, rgba(125, 75, 34, 0.06) 0 1px, transparent 1px 22px);
+      touch-action: none;
+    }
+
+    .game-hud {
+      flex: 0 0 auto;
+      height: 50px;
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 252, 245, 0.92);
+      border-bottom: 1px solid rgba(80, 58, 31, 0.14);
+      z-index: 30;
+    }
+
+    .hud-pill {
+      min-width: 0;
+      border: 1px solid rgba(92, 65, 33, 0.13);
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 999px;
+      padding: 7px 8px;
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hud-pill.score {
+      text-align: left;
+    }
+
+    .hud-pill.remaining {
+      color: var(--accent);
+    }
+
+    .retire-btn {
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: #fff0f0;
+      border: 1px solid rgba(201, 74, 74, 0.22);
+      color: #a63737;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .game-field {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255, 255, 255, 0.75), transparent 38%),
+        linear-gradient(180deg, rgba(219, 238, 203, 0.68), rgba(241, 215, 177, 0.8));
+      touch-action: none;
+    }
+
+
+    .drop-area-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .drop-area-cell {
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
+      border: 2px solid rgba(84, 58, 31, 0.18);
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.22),
+        inset 0 0 46px rgba(255, 255, 255, 0.18);
+      transition: filter 140ms ease, transform 140ms ease, background 140ms ease;
+    }
+
+    .drop-area-cell::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 30px;
+      border: 3px dashed rgba(65, 45, 24, 0.32);
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.28),
+        inset 0 0 34px rgba(255, 255, 255, 0.22);
+    }
+
+    .drop-area-cell.q-tl {
+      border-right: 3px dashed rgba(84, 58, 31, 0.34);
+      border-bottom: 3px dashed rgba(84, 58, 31, 0.34);
+      background:
+        radial-gradient(circle at 10% 16%, rgba(146, 231, 255, 0.82), transparent 54%),
+        linear-gradient(135deg, rgba(146, 231, 255, 0.48), rgba(255, 255, 255, 0.08));
+    }
+
+    .drop-area-cell.q-tr {
+      border-left: 3px dashed rgba(84, 58, 31, 0.34);
+      border-bottom: 3px dashed rgba(84, 58, 31, 0.34);
+      background:
+        radial-gradient(circle at 90% 16%, rgba(255, 225, 111, 0.86), transparent 54%),
+        linear-gradient(225deg, rgba(255, 225, 111, 0.50), rgba(255, 255, 255, 0.08));
+    }
+
+    .drop-area-cell.q-bl {
+      border-right: 3px dashed rgba(84, 58, 31, 0.34);
+      border-top: 3px dashed rgba(84, 58, 31, 0.34);
+      background:
+        radial-gradient(circle at 10% 84%, rgba(166, 235, 184, 0.86), transparent 54%),
+        linear-gradient(45deg, rgba(166, 235, 184, 0.50), rgba(255, 255, 255, 0.08));
+    }
+
+    .drop-area-cell.q-br {
+      border-left: 3px dashed rgba(84, 58, 31, 0.34);
+      border-top: 3px dashed rgba(84, 58, 31, 0.34);
+      background:
+        radial-gradient(circle at 90% 84%, rgba(255, 178, 218, 0.88), transparent 54%),
+        linear-gradient(315deg, rgba(255, 178, 218, 0.50), rgba(255, 255, 255, 0.08));
+    }
+
+    .drop-area-cell span {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: clamp(70px, 18vw, 96px);
+      height: clamp(70px, 18vw, 96px);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow:
+        0 12px 24px rgba(54, 34, 14, 0.12),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.38),
+        inset 0 -8px 18px rgba(97, 60, 22, 0.08);
+      backdrop-filter: blur(3px);
+      color: rgba(45, 33, 21, 0.90);
+      font-size: clamp(44px, 11vw, 64px);
+      line-height: 1;
+      z-index: 1;
+    }
+
+    .drop-area-cell.q-tl span { left: 12px; top: clamp(72px, 13svh, 112px); }
+    .drop-area-cell.q-tr span { right: 12px; top: clamp(72px, 13svh, 112px); }
+    .drop-area-cell.q-bl span { left: 12px; bottom: clamp(72px, 13svh, 112px); }
+    .drop-area-cell.q-br span { right: 12px; bottom: clamp(72px, 13svh, 112px); }
+
+    .drop-area-cell.flash-ok {
+      filter: saturate(1.2) brightness(1.08);
+      animation: zoneOk 190ms ease;
+    }
+
+    .drop-area-cell.flash-bad {
+      filter: saturate(1.35) brightness(1.06);
+      animation: zoneBad 190ms ease;
+    }
+
+    @keyframes zoneOk {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.015); background: rgba(155, 232, 255, 0.58); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes zoneBad {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.015); background: rgba(255, 172, 212, 0.62); }
+      100% { transform: scale(1); }
+    }
+
+    .countdown-preview .drop-area-grid {
+      z-index: 1;
+    }
+
+    .countdown-preview .drop-area-cell span {
+      width: clamp(78px, 22vw, 108px);
+      height: clamp(78px, 22vw, 108px);
+      font-size: clamp(52px, 14vw, 72px);
+    }
+
+
+    .lane-area {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 94px;
+      right: 94px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .lane {
+      position: relative;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 248, 226, 0.72), rgba(191, 149, 93, 0.2));
+      border: 1px dashed rgba(117, 76, 38, 0.18);
+    }
+
+    .lane::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      bottom: 12px;
+      width: 2px;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(180deg, rgba(125, 75, 34, 0.18) 0 8px, transparent 8px 18px);
+      opacity: 0.5;
+    }
+
+
+    .falling {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      left: 0;
+      top: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(72, 49, 24, 0.14);
+      box-shadow: 0 8px 16px rgba(53, 34, 12, 0.16);
+      font-size: 34px;
+      line-height: 1;
+      transform: translate(-50%, -50%);
+      z-index: 8;
+      cursor: grab;
+      touch-action: none;
+      will-change: left, top, transform;
+    }
+
+    .falling.dragging {
+      z-index: 60;
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.08);
+      box-shadow: 0 18px 28px rgba(41, 26, 7, 0.28);
+      background: rgba(255, 255, 255, 0.96);
+    }
+
+    .field-flash {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0;
+    }
+
+    .field-flash.bad {
+      background: rgba(255, 151, 207, 0.32);
+      animation: flashFade 250ms ease;
+    }
+
+    .miss-flash {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 22%;
+      pointer-events: none;
+      z-index: 22;
+      opacity: 0;
+    }
+
+    .miss-flash.show {
+      background: linear-gradient(180deg, transparent, rgba(255, 52, 52, 0.62));
+      animation: flashFade 260ms ease;
+    }
+
+    @keyframes flashFade {
+      0% { opacity: 0; }
+      18% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .speed-up-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(47, 143, 131, 0.93);
+      color: #fff;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      box-shadow: 0 14px 30px rgba(14, 86, 76, 0.25);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .speed-up-badge.show {
+      animation: badgePop 900ms ease;
+    }
+
+    @keyframes badgePop {
+      0% { opacity: 0; transform: translate(-50%, -48%) scale(0.85); }
+      15% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+      75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -52%) scale(0.96); }
+    }
+
+    .result-card {
+      padding-top: 20px;
+    }
+
+    .result-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(47, 143, 131, 0.12);
+      color: #176c62;
+      font-weight: 900;
+      margin: 0 auto 10px;
+    }
+
+    .result-status.retired {
+      background: rgba(201, 74, 74, 0.12);
+      color: #a63737;
+    }
+
+    .result-title {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .score-panel {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      margin: 14px 0;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(91, 64, 32, 0.08);
+    }
+
+    .score-row strong {
+      font-size: 18px;
+    }
+
+    .score-row.final {
+      background: #fff3d5;
+      border-color: rgba(167, 104, 49, 0.22);
+    }
+
+    .best-update {
+      display: none;
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(47, 143, 131, 0.12);
+      color: #176c62;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .best-update.show {
+      display: block;
+    }
+
+    .rank-panel {
+      padding: 12px;
+      margin: 12px 0 0;
+    }
+
+    .rank-panel h3 {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .rank-panel p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .rank-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .rank-name-line {
+      margin-top: 10px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(91, 64, 32, 0.08);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rank-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .name-modal-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .name-modal-status {
+      margin-top: 8px;
+      min-height: 1.4em;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .name-input {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(94, 67, 38, 0.2);
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--ink);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .rank-status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 1.4em;
+    }
+
+    .result-ranking-panel {
+      margin: 12px 0 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.66);
+      border-radius: 18px;
+    }
+
+    .result-ranking-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .result-ranking-head h3 {
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .ranking-refresh-btn {
+      min-height: 30px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(91, 64, 32, 0.14);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .ranking-refresh-btn:disabled {
+      opacity: 0.55;
+    }
+
+    .ranking-status {
+      min-height: 1.4em;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 4px 0 8px;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .ranking-row {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 9px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(91, 64, 32, 0.08);
+      font-size: 13px;
+    }
+
+    .ranking-row.me {
+      background: rgba(155, 232, 255, 0.25);
+      border-color: rgba(0, 143, 188, 0.24);
+    }
+
+    .ranking-rank {
+      font-weight: 950;
+      color: var(--main);
+    }
+
+    .ranking-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 850;
+    }
+
+    .ranking-score {
+      font-weight: 950;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: calc(18px + var(--safe-top)) calc(14px + var(--safe-right)) calc(18px + var(--safe-bottom)) calc(14px + var(--safe-left));
+      background: rgba(47, 32, 18, 0.38);
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(100%, 420px);
+      max-height: min(86svh, 680px);
+      overflow: auto;
+      background: #fffaf0;
+      border-radius: 24px;
+      box-shadow: 0 18px 42px rgba(36, 24, 12, 0.28);
+      padding: 18px;
+      user-select: text;
+      -webkit-user-select: text;
+      -webkit-touch-callout: default;
+    }
+
+    .modal-card h2 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .rules-list {
+      display: grid;
+      gap: 9px;
+      margin: 10px 0 14px;
+      color: var(--ink);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .rule-tile {
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(91, 64, 32, 0.12);
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + var(--safe-bottom));
+      z-index: 200;
+      transform: translateX(-50%) translateY(18px);
+      min-width: min(86vw, 320px);
+      padding: 12px 14px;
+      border-radius: 999px;
+      background: rgba(43, 33, 24, 0.92);
+      color: #fff;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 850;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 370px) {
+      .ranking-row {
+        grid-template-columns: 36px 1fr auto;
+        gap: 6px;
+        padding: 7px 8px;
+        font-size: 12px;
+      }
+
+      .screen {
+        padding-left: calc(10px + var(--safe-left));
+        padding-right: calc(10px + var(--safe-right));
+      }
+
+      .card {
+        border-radius: 22px;
+        padding: 18px 14px 14px;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      .game-hud {
+        height: 48px;
+        gap: 4px;
+        padding: 6px 5px;
+      }
+
+      .hud-pill {
+        font-size: 12px;
+        padding: 7px 6px;
+      }
+
+      .retire-btn {
+        padding: 7px 8px;
+      }
+
+
+      .drop-area-cell::before {
+        inset: 6px;
+        border-radius: 24px;
+        border-width: 2px;
+      }
+
+      .drop-area-cell span {
+        width: 58px;
+        height: 58px;
+        font-size: 38px;
+      }
+
+      .drop-area-cell.q-tl span { left: 8px; top: 70px; }
+      .drop-area-cell.q-tr span { right: 8px; top: 70px; }
+      .drop-area-cell.q-bl span { left: 8px; bottom: 70px; }
+      .drop-area-cell.q-br span { right: 8px; bottom: 70px; }
+
+      .lane-area {
+        left: 76px;
+        right: 76px;
+        gap: 3px;
+      }
+
+      .falling {
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        font-size: 30px;
+      }
+
+      .rank-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .countdown-preview {
+        min-height: 400px;
+      }
+
+
+      .countdown-preview .countdown-card {
+        width: min(72%, 280px);
+        padding: 26px 14px;
+      }
+    }
+
+    @media (min-width: 680px) {
+      .game-field {
+        max-width: 560px;
+        width: 100%;
+        align-self: center;
+        border-left: 1px solid rgba(80, 58, 31, 0.12);
+        border-right: 1px solid rgba(80, 58, 31, 0.12);
+      }
+
+      .game-hud {
+        max-width: 560px;
+        width: 100%;
+        align-self: center;
+        border-left: 1px solid rgba(80, 58, 31, 0.12);
+        border-right: 1px solid rgba(80, 58, 31, 0.12);
+      }
+    }
+
+    /* v2.6: 仕分けエリアを見た目で分かる広い面にする。位置名の文字は出さない。 */
+    .drop-area-grid {
+      z-index: 3 !important;
+    }
+
+    .drop-area-cell {
+      position: relative !important;
+      border-width: 0 !important;
+      overflow: hidden !important;
+      opacity: 1 !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(59, 41, 24, 0.18),
+        inset 0 0 42px rgba(255, 255, 255, 0.20) !important;
+    }
+
+    .drop-area-cell::before {
+      content: "" !important;
+      position: absolute !important;
+      inset: 5px !important;
+      border-radius: 30px !important;
+      border: 4px dashed rgba(65, 45, 24, 0.44) !important;
+      background: rgba(255, 255, 255, 0.22) !important;
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, 0.30),
+        inset 0 0 44px rgba(255, 255, 255, 0.28),
+        0 0 0 1px rgba(64, 44, 25, 0.08) !important;
+      z-index: 0 !important;
+    }
+
+    .drop-area-cell::after {
+      content: attr(data-type) !important;
+      position: absolute !important;
+      inset: 0 !important;
+      display: grid !important;
+      place-items: center !important;
+      font-size: clamp(82px, 24vw, 138px) !important;
+      line-height: 1 !important;
+      opacity: 0.16 !important;
+      filter: saturate(0.9) blur(0.2px) !important;
+      pointer-events: none !important;
+      z-index: 0 !important;
+    }
+
+    .drop-area-cell.q-tl {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(146, 231, 255, 0.92), transparent 52%),
+        linear-gradient(135deg, rgba(146, 231, 255, 0.58), rgba(255, 255, 255, 0.10)) !important;
+    }
+
+    .drop-area-cell.q-tr {
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255, 225, 111, 0.94), transparent 52%),
+        linear-gradient(225deg, rgba(255, 225, 111, 0.60), rgba(255, 255, 255, 0.10)) !important;
+    }
+
+    .drop-area-cell.q-bl {
+      background:
+        radial-gradient(circle at 18% 82%, rgba(166, 235, 184, 0.94), transparent 52%),
+        linear-gradient(45deg, rgba(166, 235, 184, 0.60), rgba(255, 255, 255, 0.10)) !important;
+    }
+
+    .drop-area-cell.q-br {
+      background:
+        radial-gradient(circle at 82% 82%, rgba(255, 178, 218, 0.96), transparent 52%),
+        linear-gradient(315deg, rgba(255, 178, 218, 0.62), rgba(255, 255, 255, 0.10)) !important;
+    }
+
+    .drop-area-cell span {
+      width: clamp(84px, 22vw, 118px) !important;
+      height: clamp(84px, 22vw, 118px) !important;
+      border-radius: 34px !important;
+      background: rgba(255, 255, 255, 0.88) !important;
+      border: 3px solid rgba(61, 43, 24, 0.18) !important;
+      box-shadow:
+        0 14px 28px rgba(54, 34, 14, 0.18),
+        0 0 0 10px rgba(255, 255, 255, 0.22),
+        inset 0 -10px 20px rgba(97, 60, 22, 0.08) !important;
+      color: var(--ink) !important;
+      font-size: clamp(54px, 14vw, 78px) !important;
+      opacity: 1 !important;
+      z-index: 2 !important;
+    }
+
+    .drop-area-cell.q-tl span { left: 10px !important; top: clamp(66px, 11svh, 102px) !important; }
+    .drop-area-cell.q-tr span { right: 10px !important; top: clamp(66px, 11svh, 102px) !important; }
+    .drop-area-cell.q-bl span { left: 10px !important; bottom: clamp(66px, 11svh, 102px) !important; }
+    .drop-area-cell.q-br span { right: 10px !important; bottom: clamp(66px, 11svh, 102px) !important; }
+
+    .countdown-preview .drop-area-cell span {
+      width: clamp(88px, 24vw, 124px) !important;
+      height: clamp(88px, 24vw, 124px) !important;
+      font-size: clamp(58px, 16vw, 82px) !important;
+    }
+
+    .drop-area-cell.flash-ok {
+      filter: saturate(1.35) brightness(1.10) !important;
+      animation: zoneOk 190ms ease !important;
+    }
+
+    .drop-area-cell.flash-bad {
+      filter: saturate(1.45) brightness(1.08) !important;
+      animation: zoneBad 190ms ease !important;
+    }
+
+    button, select, input:not([type="hidden"]) { min-height: 44px; }
+    .retire-btn, .ranking-refresh-btn { min-height: 44px; }
+    .game-hud { height: auto; min-height: 57px; }
+    .hud-pill { white-space: normal; overflow-wrap: anywhere; }
+    .btn, .ranking-refresh-btn { white-space: normal; overflow-wrap: anywhere; }
+    .x-share { background: #000 !important; color: #fff !important; }
+    .home-screen, .result-screen { align-items: flex-start; }
+    .home-screen > .card, .result-screen > .card { margin-block: auto; }
+    .player-box { display: block; }
+    .player-box input { width: 100%; margin-top: 6px; }
+    .settings { display: grid; gap: 10px; margin: 12px 0; }
+    .settings label { display: grid; gap: 4px; }
+    .settings select { width: 100%; max-width: 100%; }
+    .ranking-list { max-height: 50svh; overflow-y: auto; overscroll-behavior: contain; }
+    .ranking-name { white-space: normal; overflow-wrap: anywhere; }
+    .ranking-row { grid-template-columns: 36px minmax(0, 1fr) auto; }
+    .notice-box, .rank-status, .ranking-status { overflow-wrap: anywhere; }
+    [hidden] { display: none !important; }
+    @media (max-height: 600px) { .screen:not(.game-screen) { padding-top: calc(8px + var(--safe-top)); } }
+  </style>
+</head>
+<body>
+  <main id="app" class="app">
+    <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
+      <div class="card">
+        <div class="title-block">
+          <div class="game-mark" aria-hidden="true">🐵</div>
+          <h1 id="homeTitle">仕分けざる</h1>
+          <p class="lead" data-i18n="description">上から流れてくる猿を、同じ猿の場所へ仕分けるゲームです。正しく入れると加点、間違いや逃しは減点されます。</p>
+        </div>
+
+        <div class="best-box" aria-live="polite">
+          <span class="label" data-i18n="best">ベストスコア</span>
+          <span id="bestScoreText" class="value">まだありません</span>
+        </div>
+
+        <div class="player-box">
+          <label for="homeNameInput" data-i18n="name">プレイヤー名（任意）</label>
+          <input id="homeNameInput" class="name-input" maxlength="16" autocomplete="nickname" inputmode="text" aria-describedby="namePrivacy" />
+          <p id="namePrivacy" class="name-modal-note" data-i18n="privacy">名前を入力すると、名前と記録がランキングに公開されます。空欄でも遊べます。</p>
+          <p id="nameSaveStatus" role="status"></p>
+        </div>
+        <div class="settings">
+          <label><span data-i18n="language">言語</span><select id="languageSelect"></select></label>
+          <button id="soundButton" class="btn secondary" type="button" aria-pressed="true">音：オン</button>
+          <label><span data-i18n="volume">音量</span><input id="volumeInput" type="range" min="0" max="100" value="35" /></label>
+        </div>
+        <div class="notice-box" data-i18n="localNotice">
+          ベストスコアは、このブラウザ内に保存されます。保存データを消すと、記録が消える場合があります。別の端末や別のブラウザでは、同じスコアは表示されません。
+        </div>
+
+        <div class="button-stack">
+          <button id="startButton" class="btn" type="button" data-i18n="start">ゲーム開始</button>
+          <div class="button-row">
+            <button id="rulesButton" class="btn secondary" type="button" data-i18n="rules">ルール説明</button>
+            <button id="shareGameButton" class="btn x-share" type="button" data-i18n="share">Xでシェア</button>
+          </div>
+          <button id="labButtonHome" class="btn ghost" type="button" data-i18n="ranking">ランキング</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="countdownScreen" class="screen countdown-screen" aria-live="assertive">
+      <div class="countdown-preview" aria-label="仕分け場所の確認">
+        <div class="drop-area-grid" aria-hidden="true">
+          <div class="drop-area-cell q-tl"><span id="previewIconTopLeft">🐵</span></div>
+          <div class="drop-area-cell q-tr"><span id="previewIconTopRight">🙉</span></div>
+          <div class="drop-area-cell q-bl"><span id="previewIconBottomLeft">🙈</span></div>
+          <div class="drop-area-cell q-br"><span id="previewIconBottomRight">🙊</span></div>
+        </div>
+        <div class="countdown-card">
+          <div id="countdownNumber" class="countdown-number">3</div>
+          <p class="countdown-caption" data-i18n="preview">色のついた広いエリアを確認してください</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-label="ゲーム画面">
+      <div class="game-hud">
+        <div id="scoreHud" class="hud-pill score">スコア：0</div>
+        <div id="remainingHud" class="hud-pill remaining">残り：99</div>
+        <button id="retireButton" class="retire-btn" type="button" data-i18n="retire">リタイア</button>
+      </div>
+
+      <div id="gameField" class="game-field" aria-label="仕分けフィールド">
+        <div class="drop-area-grid" aria-hidden="true">
+          <div id="areaTopLeft" class="drop-area-cell q-tl" data-type="🐵" aria-label="🐵の受付エリア"><span id="gameIconTopLeft">🐵</span></div>
+          <div id="areaTopRight" class="drop-area-cell q-tr" data-type="🙉" aria-label="🙉の受付エリア"><span id="gameIconTopRight">🙉</span></div>
+          <div id="areaBottomLeft" class="drop-area-cell q-bl" data-type="🙈" aria-label="🙈の受付エリア"><span id="gameIconBottomLeft">🙈</span></div>
+          <div id="areaBottomRight" class="drop-area-cell q-br" data-type="🙊" aria-label="🙊の受付エリア"><span id="gameIconBottomRight">🙊</span></div>
+        </div>
+
+        <div class="lane-area" aria-hidden="true">
+          <div class="lane"></div>
+          <div class="lane"></div>
+          <div class="lane"></div>
+        </div>
+
+        <div id="fieldFlash" class="field-flash" aria-hidden="true"></div>
+        <div id="missFlash" class="miss-flash" aria-hidden="true"></div>
+        <div id="speedBadge" class="speed-up-badge" aria-hidden="true" data-i18n="speed">スピードアップ！</div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen" aria-labelledby="resultTitle">
+      <div class="card result-card">
+        <div class="result-title">
+          <div id="resultStatus" class="result-status">結果：完了</div>
+          <h2 id="resultTitle" data-i18n="result">今回の結果</h2>
+        </div>
+
+        <div class="score-panel" aria-live="polite">
+          <div class="score-row">
+            <span data-i18n="sortScore">仕分けスコア</span>
+            <strong id="resultSortScore">0点</strong>
+          </div>
+          <div class="score-row">
+            <span data-i18n="mistakes">仕分けミス</span>
+            <strong id="resultMistakes">0回</strong>
+          </div>
+          <div class="score-row">
+            <span data-i18n="misses">仕分け逃し</span>
+            <strong id="resultMisses">0回</strong>
+          </div>
+          <div class="score-row final">
+            <span data-i18n="total">総合スコア</span>
+            <strong id="resultTotalScore">0点</strong>
+          </div>
+        </div>
+
+        <div id="bestUpdate" class="best-update" data-i18n="newBest">ベスト更新！</div>
+
+        <div id="rankPanel" class="rank-panel">
+          <h3 data-i18n="submission">ランキング送信</h3>
+          <p id="rankHelp">通常クリア時だけ、ゲーム開始前に登録した名前で自動送信します。</p>
+          <div id="rankNameLine" class="rank-name-line">名前：未登録</div>
+          <input id="playerNameInput" type="hidden" />
+          <div class="rank-actions">
+            <button id="submitScoreButton" class="btn small" type="button" hidden>再送信</button>
+          </div>
+          <div id="rankStatus" class="rank-status" aria-live="polite"></div>
+        </div>
+
+        <div id="resultRankingPanel" class="result-ranking-panel" aria-live="polite">
+          <div class="result-ranking-head">
+            <h3 data-i18n="ranking">ランキング</h3>
+            <button id="refreshRankingButton" class="ranking-refresh-btn" type="button" data-i18n="refresh">再読込</button>
+          </div>
+          <div id="rankingStatus" class="ranking-status">ランキングを読み込みます。</div>
+          <ol id="rankingList" class="ranking-list"></ol>
+        </div>
+
+        <div class="button-stack">
+          <button id="shareResultButton" class="btn x-share" type="button" data-i18n="share">Xでシェア</button>
+          <div class="button-row">
+            <button id="retryButton" class="btn secondary" type="button" data-i18n="retry">もう一度遊ぶ</button>
+            <button id="finishButton" class="btn secondary" type="button" data-i18n="home">ホームへ</button>
+          </div>
+          <button id="labButtonResult" class="btn ghost" type="button" data-i18n="ranking">ランキング</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="rulesModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="modal-card">
+      <h2 id="rulesTitle" data-i18n="rules">ルール説明</h2>
+      <div class="rules-list">
+        <p>流れてくる猿をタップして引っ張り、同じ絵文字が表示されている色つきエリアへ入れてください。</p>
+        <p>受付は小さな箱ではなく、画面を4つに分けた大きな色つきエリア全体です。</p>
+        <p>4つの猿の場所はゲームごとに変わります。開始前のカウントダウンとゲーム画面で、今回の場所を確認してください。</p>
+        <p>正解は +10点、ミスは -10点、画面下へ逃すと -15点です。</p>
+        <p>99個すべての猿を処理したら終了です。残り40個から少し速くなります。</p>
+        <p>カウントダウン中は、今回の仕分けエリアだけを表示し、流れてくる猿は見せません。</p>
+      </div>
+      <button id="closeRulesButton" class="btn" type="button" data-i18n="close">閉じる</button>
+    </div>
+  </div>
+
+  <div id="shareFallback" class="modal" role="dialog" aria-modal="true" aria-labelledby="shareFallbackTitle">
+    <div class="modal-card">
+      <h2 id="shareFallbackTitle" data-i18n="popupBlocked">Xを開けませんでした</h2>
+      <textarea id="shareFallbackText" readonly rows="6" style="width:100%"></textarea>
+      <button id="copyShareButton" class="btn" type="button" data-i18n="copy">本文とURLをコピー</button>
+      <button id="closeShareButton" class="btn secondary" type="button" data-i18n="close">閉じる</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">クリップボードにコピーしました</div>
+
+  <script src="common-ui.js"></script>
+  <script src="normal-score-ack8.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const GAME_TITLE = "仕分けざる";
+      const GAME_SLUG = "shiwakezaru";
+      const CLIENT_VERSION = "shiwakezaru-v2.10.0-common";
+      const GAME_URL = "https://chameleonjp.codeberg.page/shiwakezaru/";
+      const LAB_URL = "https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=shiwakezaru";
+      const GAME_DESCRIPTION = "上から流れてくる猿を、同じ猿の場所へ仕分けるゲームです。";
+
+      const SUPABASE_URL = "https://mlpnjgezrnhdxsxolyzj.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_drzcy0v97knU6FgjqSgBHw_0A9XPdFM";
+
+      const TOTAL_ITEMS = 99;
+      const BASE_SPEED = 72;
+      const SPEED_UP_AT_REMAINING = 40;
+      const SPEED_MULTIPLIER = 1.3;
+      const SPAWN_MARGIN_Y = -36;
+      const BEST_KEY = "shiwakezaru_best_score";
+      const RETIRED_KEY = "shiwakezaru_has_retired";
+      const LAST_RESULT_KEY = "shiwakezaru_last_result";
+      const PLAYER_NAME_KEY = "chameleonjp_player_name";
+      const GAME_PLAYER_NAME_KEY = "shiwakezaru_player_name";
+      const C = window.ShiwakeCommon;
+      const t = (key, params) => C.t(key, params);
+      const MONKEY_TYPES = ["🐵", "🙈", "🙉", "🙊"];
+
+
+      const screens = {
+        home: document.getElementById("homeScreen"),
+        countdown: document.getElementById("countdownScreen"),
+        game: document.getElementById("gameScreen"),
+        result: document.getElementById("resultScreen"),
+      };
+
+      const el = {
+        bestScoreText: document.getElementById("bestScoreText"),
+        homeNameInput: document.getElementById("homeNameInput"),
+        startButton: document.getElementById("startButton"),
+        rulesButton: document.getElementById("rulesButton"),
+        closeRulesButton: document.getElementById("closeRulesButton"),
+        rulesModal: document.getElementById("rulesModal"),
+        shareGameButton: document.getElementById("shareGameButton"),
+        labButtonHome: document.getElementById("labButtonHome"),
+        countdownNumber: document.getElementById("countdownNumber"),
+        scoreHud: document.getElementById("scoreHud"),
+        remainingHud: document.getElementById("remainingHud"),
+        retireButton: document.getElementById("retireButton"),
+        gameField: document.getElementById("gameField"),
+        fieldFlash: document.getElementById("fieldFlash"),
+        missFlash: document.getElementById("missFlash"),
+        speedBadge: document.getElementById("speedBadge"),
+        areaTopLeft: document.getElementById("areaTopLeft"),
+        areaTopRight: document.getElementById("areaTopRight"),
+        areaBottomLeft: document.getElementById("areaBottomLeft"),
+        areaBottomRight: document.getElementById("areaBottomRight"),
+        gameIconTopLeft: document.getElementById("gameIconTopLeft"),
+        gameIconTopRight: document.getElementById("gameIconTopRight"),
+        gameIconBottomLeft: document.getElementById("gameIconBottomLeft"),
+        gameIconBottomRight: document.getElementById("gameIconBottomRight"),
+        previewIconTopLeft: document.getElementById("previewIconTopLeft"),
+        previewIconTopRight: document.getElementById("previewIconTopRight"),
+        previewIconBottomLeft: document.getElementById("previewIconBottomLeft"),
+        previewIconBottomRight: document.getElementById("previewIconBottomRight"),
+        resultStatus: document.getElementById("resultStatus"),
+        resultSortScore: document.getElementById("resultSortScore"),
+        resultMistakes: document.getElementById("resultMistakes"),
+        resultMisses: document.getElementById("resultMisses"),
+        resultTotalScore: document.getElementById("resultTotalScore"),
+        bestUpdate: document.getElementById("bestUpdate"),
+        rankPanel: document.getElementById("rankPanel"),
+        rankHelp: document.getElementById("rankHelp"),
+        rankNameLine: document.getElementById("rankNameLine"),
+        playerNameInput: document.getElementById("playerNameInput"),
+        submitScoreButton: document.getElementById("submitScoreButton"),
+        rankStatus: document.getElementById("rankStatus"),
+        resultRankingPanel: document.getElementById("resultRankingPanel"),
+        rankingStatus: document.getElementById("rankingStatus"),
+        rankingList: document.getElementById("rankingList"),
+        refreshRankingButton: document.getElementById("refreshRankingButton"),
+        shareResultButton: document.getElementById("shareResultButton"),
+        retryButton: document.getElementById("retryButton"),
+        finishButton: document.getElementById("finishButton"),
+        labButtonResult: document.getElementById("labButtonResult"),
+        toast: document.getElementById("toast"),
+        boxes: Array.from(document.querySelectorAll("#gameField .drop-area-cell")),
+      };
+
+      const dropTargets = {
+        topLeft: el.areaTopLeft,
+        topRight: el.areaTopRight,
+        bottomLeft: el.areaBottomLeft,
+        bottomRight: el.areaBottomRight,
+      };
+
+      const zoneIcons = {
+        topLeft: [el.gameIconTopLeft, el.previewIconTopLeft],
+        topRight: [el.gameIconTopRight, el.previewIconTopRight],
+        bottomLeft: [el.gameIconBottomLeft, el.previewIconBottomLeft],
+        bottomRight: [el.gameIconBottomRight, el.previewIconBottomRight],
+      };
+
+      let state = createInitialState();
+      let activeItems = [];
+      let animationFrameId = 0;
+      let lastFrameTime = 0;
+      let itemIdSeq = 1;
+      let dragItem = null;
+      let toastTimer = 0;
+      let shareGeneration = 0;
+      let nameSaveFailed = false;
+      let countdownTimer = 0;
+      let gameEnding = false;
+      let currentPlay = null;
+      let finalResult = null;
+      let submission = null;
+      let playSerial = 0;
+      let rankingRequestId = 0;
+      let rankingRows = [];
+      let rankingStatusKey = "rankingLoading";
+      let currentZoneAssignments = null;
+      let previousZoneSignature = "";
+
+      function createInitialState() {
+        return {
+          status: "home",
+          sequence: [],
+          spawned: 0,
+          processed: 0,
+          correct: 0,
+          mistakes: 0,
+          misses: 0,
+          score: 0,
+          speedMultiplier: 1,
+          speedUpShown: false,
+          retired: false,
+          finalScore: 0,
+          bestUpdated: false,
+          startedAt: 0,
+          endedAt: 0,
+        };
+      }
+
+      function showScreen(name) {
+        Object.values(screens).forEach((screen) => screen.classList.remove("active"));
+        screens[name].classList.add("active");
+        state.status = name;
+      }
+
+      function safeGetItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function safeSetItem(key, value) {
+        try {
+          window.localStorage.setItem(key, value);
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function safeRemoveItem(key) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (_) {
+          // 保存できない環境では何もしない。
+        }
+      }
+
+      function formatScore(score) {
+        const value = Number(score);
+        return t("points", { n: Number.isFinite(value) ? value : 0 });
+      }
+
+      function loadBestScore() {
+        const raw = safeGetItem(BEST_KEY);
+        const best = raw === null ? null : Number(raw);
+        const hasBest = Number.isFinite(best);
+        const hasRetired = safeGetItem(RETIRED_KEY) === "1";
+
+        if (hasBest) return formatScore(best);
+        if (hasRetired) return t("retired");
+        return t("noBest");
+      }
+
+      function updateBestScoreText() {
+        el.bestScoreText.textContent = loadBestScore();
+      }
+
+
+      function getStoredPlayerName() {
+        const own = safeGetItem(GAME_PLAYER_NAME_KEY);
+        return normalizePlayerName(own === null ? safeGetItem(PLAYER_NAME_KEY) || "" : own);
+      }
+
+      function getCurrentPlayerName() {
+        return currentPlay ? currentPlay.name : "";
+      }
+
+      function updatePlayerNameViews() {
+        const name = getCurrentPlayerName();
+        if (el.rankNameLine) el.rankNameLine.textContent = t("nameLine", { name: name || t("anonymous") });
+        if (el.playerNameInput) el.playerNameInput.value = name;
+      }
+
+      function requestGameStart() {
+        if (state.status === "game" || state.status === "countdown") return;
+        dismissShareFallback();
+        const name = normalizePlayerName(el.homeNameInput.value);
+        currentPlay = Object.freeze({ name, eligible: Boolean(name), serial: ++playSerial });
+        submission = { play: currentPlay, status: "idle" };
+        finalResult = null;
+        rankingRequestId += 1;
+        persistHomeName();
+        updatePlayerNameViews();
+        C.unlockAudio();
+        C.sound("start");
+        startCountdown();
+      }
+
+      function persistHomeName() {
+        const ok = safeSetItem(GAME_PLAYER_NAME_KEY, normalizePlayerName(el.homeNameInput.value));
+        nameSaveFailed = !ok;
+        document.getElementById("nameSaveStatus").textContent = nameSaveFailed ? t("storageFailed") : "";
+      }
+
+      function makeSequence() {
+        const items = [];
+        const distribution = [
+          ["🐵", 25],
+          ["🙈", 25],
+          ["🙉", 25],
+          ["🙊", 24],
+        ];
+        for (const [type, count] of distribution) {
+          for (let i = 0; i < count; i += 1) items.push(type);
+        }
+        return shuffle(items);
+      }
+
+      function shuffle(array) {
+        const copied = array.slice();
+        for (let i = copied.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copied[i], copied[j]] = [copied[j], copied[i]];
+        }
+        return copied;
+      }
+
+      function makeZoneAssignments() {
+        let assignments = null;
+        let signature = "";
+
+        for (let attempt = 0; attempt < 12; attempt += 1) {
+          const shuffledTypes = shuffle(MONKEY_TYPES);
+          assignments = {
+            topLeft: shuffledTypes[0],
+            topRight: shuffledTypes[1],
+            bottomLeft: shuffledTypes[2],
+            bottomRight: shuffledTypes[3],
+          };
+          signature = getZoneSignature(assignments);
+          if (!previousZoneSignature || signature !== previousZoneSignature) break;
+        }
+
+        previousZoneSignature = signature;
+        return assignments;
+      }
+
+      function getZoneSignature(assignments) {
+        return [assignments.topLeft, assignments.topRight, assignments.bottomLeft, assignments.bottomRight].join("");
+      }
+
+      function applyZoneAssignments(assignments) {
+        currentZoneAssignments = assignments;
+        for (const [position, type] of Object.entries(assignments)) {
+          const target = dropTargets[position];
+          if (target) {
+            target.dataset.type = type;
+            target.setAttribute("aria-label", t("zone", { type }));
+          }
+          const icons = zoneIcons[position] || [];
+          icons.forEach((icon) => {
+            if (!icon) return;
+            icon.textContent = type;
+            const cell = icon.closest(".drop-area-cell");
+            if (cell) {
+              cell.dataset.type = type;
+              cell.setAttribute("aria-label", t("zone", { type }));
+            }
+          });
+        }
+      }
+
+
+      function startCountdown() {
+        stopGameLoop();
+        clearGameFieldItems();
+        gameEnding = false;
+        applyZoneAssignments(makeZoneAssignments());
+        showScreen("countdown");
+        const marks = ["3", "2", "1", t("go")];
+        let index = 0;
+        el.countdownNumber.textContent = marks[index];
+        window.clearInterval(countdownTimer);
+        countdownTimer = window.setInterval(() => {
+          index += 1;
+          if (index < marks.length) {
+            el.countdownNumber.textContent = marks[index];
+          } else {
+            window.clearInterval(countdownTimer);
+            startGame();
+          }
+        }, 700);
+      }
+
+      function startGame() {
+        state = createInitialState();
+        if (!currentZoneAssignments) applyZoneAssignments(makeZoneAssignments());
+        state.status = "game";
+        state.sequence = makeSequence();
+        state.startedAt = Date.now();
+        activeItems = [];
+        itemIdSeq = 1;
+        dragItem = null;
+        gameEnding = false;
+        clearGameFieldItems();
+        updateGameHud();
+        showScreen("game");
+        lastFrameTime = performance.now();
+        animationFrameId = window.requestAnimationFrame(gameLoop);
+      }
+
+      function stopGameLoop() {
+        if (animationFrameId) {
+          window.cancelAnimationFrame(animationFrameId);
+          animationFrameId = 0;
+        }
+      }
+
+      function clearGameFieldItems() {
+        el.gameField.querySelectorAll(".falling").forEach((node) => node.remove());
+      }
+
+      function updateGameHud() {
+        el.scoreHud.textContent = t("scoreHud", { n: state.score });
+        el.remainingHud.textContent = t("remaining", { n: getRemainingCount() });
+      }
+
+      function getRemainingCount() {
+        return Math.max(0, TOTAL_ITEMS - state.processed);
+      }
+
+      function gameLoop(now) {
+        if (state.status !== "game" || gameEnding) return;
+
+        const dt = Math.min(0.05, Math.max(0, (now - lastFrameTime) / 1000));
+        lastFrameTime = now;
+
+        maybeSpeedUp();
+        spawnAvailableItems();
+        moveItems(dt);
+        checkMissedItems();
+        updateGameHud();
+
+        if (!gameEnding) {
+          animationFrameId = window.requestAnimationFrame(gameLoop);
+        }
+      }
+
+      function maybeSpeedUp() {
+        if (state.speedMultiplier > 1) return;
+        if (getRemainingCount() <= SPEED_UP_AT_REMAINING) {
+          state.speedMultiplier = SPEED_MULTIPLIER;
+          if (!state.speedUpShown) {
+            state.speedUpShown = true;
+            showSpeedBadge();
+          }
+        }
+      }
+
+      function showSpeedBadge() {
+        C.sound("speed");
+        el.speedBadge.classList.remove("show");
+        void el.speedBadge.offsetWidth;
+        el.speedBadge.classList.add("show");
+      }
+
+      function getFieldMetrics() {
+        const rect = el.gameField.getBoundingClientRect();
+        const isSmall = rect.width <= 370;
+        const side = isSmall ? 76 : 94;
+        const gap = isSmall ? 3 : 4;
+        const laneAreaLeft = side;
+        const laneAreaRight = rect.width - side;
+        const laneTotalWidth = Math.max(60, laneAreaRight - laneAreaLeft);
+        const laneWidth = (laneTotalWidth - gap * 2) / 3;
+        const centers = [0, 1, 2].map((lane) => laneAreaLeft + laneWidth / 2 + lane * (laneWidth + gap));
+        const spacing = Math.min(108, Math.max(74, rect.height * 0.18));
+        return { rect, centers, spacing };
+      }
+
+      function spawnAvailableItems() {
+        if (state.spawned >= TOTAL_ITEMS) return;
+        const { centers, spacing } = getFieldMetrics();
+        const lanes = shuffle([0, 1, 2]);
+
+        for (const lane of lanes) {
+          if (state.spawned >= TOTAL_ITEMS) break;
+          if (!canSpawnInLane(lane, spacing)) continue;
+          const type = state.sequence[state.spawned];
+          spawnItem(type, lane, centers[lane]);
+        }
+      }
+
+      function canSpawnInLane(lane, spacing) {
+        return !activeItems.some((item) => item.lane === lane && !item.processed && item.y < spacing);
+      }
+
+      function spawnItem(type, lane, x) {
+        const node = document.createElement("div");
+        node.className = "falling";
+        node.textContent = type;
+        node.setAttribute("role", "button");
+        node.setAttribute("aria-label", t("sortMonkey", { type }));
+        node.dataset.id = String(itemIdSeq);
+        node.dataset.type = type;
+
+        const item = {
+          id: itemIdSeq,
+          type,
+          lane,
+          x,
+          y: SPAWN_MARGIN_Y,
+          node,
+          dragging: false,
+          processed: false,
+          pointerId: null,
+          offsetX: 0,
+          offsetY: 0,
+        };
+
+        itemIdSeq += 1;
+        state.spawned += 1;
+        activeItems.push(item);
+        el.gameField.appendChild(node);
+        placeItemNode(item);
+
+        node.addEventListener("pointerdown", (event) => beginDrag(event, item), { passive: false });
+      }
+
+      function placeItemNode(item) {
+        item.node.style.left = `${item.x}px`;
+        item.node.style.top = `${item.y}px`;
+      }
+
+      function moveItems(dt) {
+        const { centers } = getFieldMetrics();
+        const speed = BASE_SPEED * state.speedMultiplier;
+        for (const item of activeItems) {
+          if (item.processed || item.dragging) continue;
+          item.x = centers[item.lane];
+          item.y += speed * dt;
+          placeItemNode(item);
+        }
+      }
+
+      function checkMissedItems() {
+        const { rect } = getFieldMetrics();
+        const bottomLimit = rect.height + 44;
+        const missed = activeItems.filter((item) => !item.processed && !item.dragging && item.y > bottomLimit);
+        missed.forEach((item) => processItem(item, "miss", null));
+      }
+
+      function beginDrag(event, item) {
+        if (state.status !== "game" || gameEnding || item.processed) return;
+        if (dragItem && dragItem !== item) return;
+        C.sound("select");
+        event.preventDefault();
+        event.stopPropagation();
+
+        const fieldRect = el.gameField.getBoundingClientRect();
+        item.dragging = true;
+        item.pointerId = event.pointerId;
+        item.offsetX = event.clientX - fieldRect.left - item.x;
+        item.offsetY = event.clientY - fieldRect.top - item.y;
+        item.node.classList.add("dragging");
+        dragItem = item;
+
+        try {
+          item.node.setPointerCapture(event.pointerId);
+        } catch (_) {
+          // 古いブラウザでは無視する。
+        }
+
+        item.node.addEventListener("pointermove", onPointerMove, { passive: false });
+        item.node.addEventListener("pointerup", onPointerUp, { passive: false });
+        item.node.addEventListener("pointercancel", onPointerCancel, { passive: false });
+      }
+
+      function onPointerMove(event) {
+        if (!dragItem || dragItem.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        const fieldRect = el.gameField.getBoundingClientRect();
+        dragItem.x = event.clientX - fieldRect.left - dragItem.offsetX;
+        dragItem.y = event.clientY - fieldRect.top - dragItem.offsetY;
+        placeItemNode(dragItem);
+      }
+
+      function onPointerUp(event) {
+        if (!dragItem || dragItem.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        finishDrag(event.clientX, event.clientY);
+      }
+
+      function onPointerCancel(event) {
+        if (!dragItem || dragItem.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        cancelDragAsMiss();
+      }
+
+      function cancelDragAsMiss() {
+        const item = dragItem;
+        if (!item || item.processed) return;
+        dragItem = null;
+        processItem(item, "wrong-empty", null);
+      }
+
+      function finishDrag(clientX, clientY) {
+        const item = dragItem;
+        if (!item || item.processed) return;
+
+        cleanupDragListeners(item);
+        item.dragging = false;
+        item.node.classList.remove("dragging");
+        dragItem = null;
+
+        const box = getDropBox(clientX, clientY);
+        if (!box) {
+          processItem(item, "wrong-empty", null);
+          return;
+        }
+
+        const targetType = box.dataset.type;
+        if (targetType === item.type) {
+          processItem(item, "correct", box);
+        } else {
+          processItem(item, "wrong-box", box);
+        }
+      }
+
+      function cleanupDragListeners(item) {
+        item.node.removeEventListener("pointermove", onPointerMove);
+        item.node.removeEventListener("pointerup", onPointerUp);
+        item.node.removeEventListener("pointercancel", onPointerCancel);
+        try {
+          if (item.pointerId !== null) item.node.releasePointerCapture(item.pointerId);
+        } catch (_) {
+          // 無視する。
+        }
+        item.pointerId = null;
+      }
+
+      function getDropBox(clientX, clientY) {
+        // 遠くまでドラッグしなくても遊びやすいように、ゲーム画面の中央を基準に4つの受付エリアへ広げる。
+        // どの絵文字がどのエリアに入るかは、ゲームごとに変わる。
+        const fieldRect = el.gameField.getBoundingClientRect();
+        const insideField =
+          clientX >= fieldRect.left &&
+          clientX <= fieldRect.right &&
+          clientY >= fieldRect.top &&
+          clientY <= fieldRect.bottom;
+
+        if (insideField) {
+          const centerX = fieldRect.left + fieldRect.width / 2;
+          const centerY = fieldRect.top + fieldRect.height / 2;
+          const isLeft = clientX < centerX;
+          const isTop = clientY < centerY;
+
+          if (isLeft && isTop) return dropTargets.topLeft;
+          if (isLeft && !isTop) return dropTargets.bottomLeft;
+          if (!isLeft && isTop) return dropTargets.topRight;
+          return dropTargets.bottomRight;
+        }
+
+        // 画面外へ少しはみ出した指離しでも、見えている箱の近くなら受け付ける。
+        for (const box of el.boxes) {
+          const rect = box.getBoundingClientRect();
+          const padding = 18;
+          if (
+            clientX >= rect.left - padding &&
+            clientX <= rect.right + padding &&
+            clientY >= rect.top - padding &&
+            clientY <= rect.bottom + padding
+          ) {
+            return box;
+          }
+        }
+        return null;
+      }
+
+      function processItem(item, result, box) {
+        if (item.processed || gameEnding) return;
+        item.processed = true;
+        C.sound(result === "correct" ? "correct" : result === "miss" ? "miss" : "wrong");
+
+        if (item.dragging) {
+          cleanupDragListeners(item);
+          item.dragging = false;
+          item.node.classList.remove("dragging");
+        }
+        if (dragItem && dragItem.id === item.id) dragItem = null;
+
+        if (result === "correct") {
+          state.correct += 1;
+          state.score += 10;
+          flashBox(box, "ok");
+        } else if (result === "miss") {
+          state.misses += 1;
+          state.score -= 15;
+          flashMiss();
+        } else if (result === "wrong-box") {
+          state.mistakes += 1;
+          state.score -= 10;
+          flashBox(box, "bad");
+        } else {
+          state.mistakes += 1;
+          state.score -= 10;
+          flashFieldBad();
+        }
+
+        state.processed += 1;
+        removeItem(item);
+        updateGameHud();
+
+        if (state.processed >= TOTAL_ITEMS) {
+          finishGame(false);
+        }
+      }
+
+      function removeItem(item) {
+        activeItems = activeItems.filter((current) => current.id !== item.id);
+        item.node.remove();
+      }
+
+      function flashBox(box, kind) {
+        if (!box) return;
+        const className = kind === "ok" ? "flash-ok" : "flash-bad";
+        box.classList.remove("flash-ok", "flash-bad");
+        void box.offsetWidth;
+        box.classList.add(className);
+        window.setTimeout(() => box.classList.remove(className), 170);
+      }
+
+      function flashFieldBad() {
+        el.fieldFlash.classList.remove("bad");
+        void el.fieldFlash.offsetWidth;
+        el.fieldFlash.classList.add("bad");
+        window.setTimeout(() => el.fieldFlash.classList.remove("bad"), 280);
+      }
+
+      function flashMiss() {
+        el.missFlash.classList.remove("show");
+        void el.missFlash.offsetWidth;
+        el.missFlash.classList.add("show");
+        window.setTimeout(() => el.missFlash.classList.remove("show"), 290);
+      }
+
+      function retireGame() {
+        if (state.status !== "game" || gameEnding) return;
+        finishGame(true);
+      }
+
+      function finishGame(retired) {
+        if (gameEnding) return;
+        gameEnding = true;
+        dismissShareFallback();
+        state.retired = retired;
+        state.endedAt = Date.now();
+        state.finalScore = state.correct * 10 - state.mistakes * 10 - state.misses * 15;
+        finalResult = Object.freeze({ play: currentPlay, retired, correct: state.correct, mistakes: state.mistakes, misses: state.misses, finalScore: state.finalScore });
+        stopGameLoop();
+
+        if (dragItem) {
+          cleanupDragListeners(dragItem);
+          dragItem = null;
+        }
+
+        activeItems.forEach((item) => item.node.remove());
+        activeItems = [];
+
+        if (retired) {
+          if (safeGetItem(BEST_KEY) === null) safeSetItem(RETIRED_KEY, "1");
+        } else {
+          saveBestIfNeeded(state.finalScore);
+        }
+        C.sound(retired ? "cancel" : state.bestUpdated ? "best" : "complete");
+
+        safeSetItem(LAST_RESULT_KEY, JSON.stringify({
+          retired,
+          correct: state.correct,
+          mistakes: state.mistakes,
+          misses: state.misses,
+          finalScore: state.finalScore,
+          sortScore: state.correct * 10,
+          finishedAt: new Date().toISOString(),
+          version: CLIENT_VERSION,
+        }));
+
+        submission.status = retired || !currentPlay.eligible ? "skipped" : "idle";
+        renderResult();
+        showScreen("result");
+        loadResultRanking();
+        if (!retired) autoSubmitSavedName();
+      }
+
+      function saveBestIfNeeded(score) {
+        const raw = safeGetItem(BEST_KEY);
+        const oldBest = raw === null ? null : Number(raw);
+        const hasOldBest = Number.isFinite(oldBest);
+        if (!hasOldBest || score > oldBest) {
+          safeSetItem(BEST_KEY, String(score));
+          safeRemoveItem(RETIRED_KEY);
+          state.bestUpdated = true;
+        } else {
+          state.bestUpdated = false;
+        }
+      }
+
+      function renderResult() {
+        const sortScore = state.correct * 10;
+        el.resultSortScore.textContent = formatScore(sortScore);
+        el.resultMistakes.textContent = t("times", { n: state.mistakes });
+        el.resultMisses.textContent = t("times", { n: state.misses });
+
+        if (state.retired) {
+          el.resultStatus.textContent = t("retired");
+          el.resultStatus.classList.add("retired");
+          el.resultTotalScore.textContent = t("retired");
+          el.bestUpdate.classList.remove("show");
+          setupRankPanel();
+        } else {
+          el.resultStatus.textContent = t("completed");
+          el.resultStatus.classList.remove("retired");
+          el.resultTotalScore.textContent = formatScore(state.finalScore);
+          el.bestUpdate.classList.toggle("show", state.bestUpdated);
+          setupRankPanel();
+        }
+      }
+
+      function setupRankPanel() {
+        el.rankHelp.textContent = t(state.retired ? "retireNoSend" : currentPlay && currentPlay.eligible ? "autoSend" : "anonymousNoSend");
+        updatePlayerNameViews();
+        updateRankControls();
+      }
+
+      function updateRankControls() {
+        const status = submission ? submission.status : "skipped";
+        const keys = { idle: "sendPending", sending: "sending", sent: "sent", uncertain: "sendUncertain", rejected: "sendRejected", skipped: "" };
+        el.rankStatus.textContent = keys[status] ? t(keys[status]) : "";
+        // No retry until the server's identity/idempotency contract is verified.
+        el.submitScoreButton.hidden = true;
+        el.submitScoreButton.disabled = true;
+      }
+
+      function autoSubmitSavedName() {
+        void submitScore();
+      }
+
+      function isSupabaseConfigured() {
+        return /^https:\/\/[^\s]+\.supabase\.co\/?$/.test(SUPABASE_URL) && SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
+      }
+
+      async function submitScore() {
+        const result = finalResult;
+        const attempt = submission;
+        if (!result || result.retired || !result.play.eligible || !attempt || attempt.play !== result.play || attempt.status !== "idle") return;
+        if (!isSupabaseConfigured()) { attempt.status = "rejected"; updateRankControls(); return; }
+        attempt.status = "sending";
+        updateRankControls();
+
+        try {
+          const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/rpc/submit_score`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": SUPABASE_PUBLISHABLE_KEY,
+              "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              p_display_name: result.play.name,
+              p_game_slug: GAME_SLUG,
+              p_score: result.finalScore,
+              p_client_version: CLIENT_VERSION,
+            }),
+          });
+
+          await readSubmitScoreResponse(response, {
+            gameSlug: GAME_SLUG,
+            scoreOrder: "desc",
+            displayName: result.play.name,
+            score: result.finalScore,
+          });
+          // Validate the observed normal8 receipt against this immutable play.
+          // This does not establish server idempotency or distinct-person identity.
+          attempt.status = "sent";
+          if (submission === attempt && state.status === "result") {
+            showToast(t("sent"));
+            void loadResultRanking({ force: true });
+          }
+        } catch (error) {
+          attempt.status = error && error.definitelyRejected ? "rejected" : "uncertain";
+        } finally {
+          if (submission === attempt) updateRankControls();
+        }
+      }
+
+      async function readSubmitScoreResponse(response, expected) {
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+        const payload = JSON.parse(text);
+        const validation = validateNormalScoreAck8(payload, expected);
+        if (!validation.ok) throw new Error(`Unconfirmed score receipt: ${validation.reason}`);
+        return validation.receipt;
+      }
+
+      async function loadResultRanking(options = {}) {
+        if (!el.resultRankingPanel) return;
+        const requestId = ++rankingRequestId;
+
+        if (!isSupabaseConfigured()) {
+          renderRankingStatus("rankingFailed");
+          return;
+        }
+
+        el.refreshRankingButton.disabled = true;
+        rankingStatusKey = "rankingLoading";
+        el.rankingStatus.textContent = t(rankingStatusKey);
+
+        try {
+          const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/rest/v1/rpc/get_best_score_ranking`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": SUPABASE_PUBLISHABLE_KEY,
+              "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              p_game_slug: GAME_SLUG,
+              p_limit: 30,
+            }),
+          });
+
+          const rows = await readRankingResponse(response);
+          if (requestId !== rankingRequestId) return;
+          rankingRows = rows;
+          renderRankingList(rows);
+        } catch (error) {
+          if (requestId !== rankingRequestId) return;
+          renderRankingStatus("rankingFailed");
+        } finally {
+          if (requestId === rankingRequestId) el.refreshRankingButton.disabled = false;
+        }
+      }
+
+      async function readRankingResponse(response) {
+        const text = await response.text();
+        let payload = null;
+        if (text) {
+          try {
+            payload = JSON.parse(text);
+          } catch (_) {
+            payload = null;
+          }
+        }
+
+        if (!response.ok) {
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        if (!Array.isArray(payload)) throw new Error("Invalid ranking response");
+        return payload;
+      }
+
+      function renderRankingStatus(key) {
+        rankingStatusKey = key;
+        rankingRows = [];
+        el.rankingStatus.textContent = t(key);
+        el.rankingList.innerHTML = "";
+      }
+
+      function renderRankingList(rows) {
+        const list = Array.isArray(rows) ? rows.slice(0, 30) : [];
+        el.rankingList.innerHTML = "";
+
+        if (!list.length) {
+          rankingStatusKey = "rankingEmpty";
+          el.rankingStatus.textContent = t(rankingStatusKey);
+          return;
+        }
+
+        rankingStatusKey = "rankingTop";
+        el.rankingStatus.textContent = t(rankingStatusKey);
+
+        for (let index = 0; index < list.length; index += 1) {
+          const row = list[index] || {};
+          const rankNo = getRankingRank(row, index);
+          const name = getRankingName(row);
+          const score = getRankingScore(row);
+          const item = document.createElement("li");
+          item.className = "ranking-row";
+
+          const rankSpan = document.createElement("span");
+          rankSpan.className = "ranking-rank";
+          rankSpan.textContent = rankNo === null ? "—" : String(rankNo);
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "ranking-name";
+          nameSpan.textContent = name;
+
+          const scoreSpan = document.createElement("span");
+          scoreSpan.className = "ranking-score";
+          scoreSpan.textContent = score === null ? "—" : formatScore(score);
+
+          item.append(rankSpan, nameSpan, scoreSpan);
+          el.rankingList.appendChild(item);
+        }
+      }
+
+      function getRankingRank(row, index) {
+        const value = row.rank_no;
+        return Number.isSafeInteger(value) && value > 0 ? value : null;
+      }
+
+      function getRankingName(row) {
+        return String(row.display_name ?? row.result_display_name ?? row.name ?? row.player_name ?? t("anonymous")).trim() || t("anonymous");
+      }
+
+      function getRankingScore(row) {
+        const value = row.best_score;
+        return Number.isInteger(value) && value >= -2147483648 && value <= 2147483647 ? value : null;
+      }
+
+      function normalizePlayerName(value) {
+        // Preserve the existing 16-code-unit cap without leaving a cut surrogate.
+        return String(value || "").trim().replace(/\s+/g, " ").slice(0, 16).replace(/[\uD800-\uDBFF]$/, "");
+      }
+
+      async function shareGame() {
+        openXShare(`${GAME_TITLE}\n${t("description")}\n${GAME_URL}\n#仕分けざる #ゲーム制作`);
+      }
+
+      async function shareResult() {
+        if (!finalResult) return;
+        const result = finalResult;
+        const detail = result.retired ? t("retired") : `${t("total")}: ${formatScore(result.finalScore)}`;
+        openXShare(`${GAME_TITLE}\n${detail}\n${t("mistakes")}: ${result.mistakes} / ${t("misses")}: ${result.misses}\n${GAME_URL}\n#仕分けざる #ゲーム制作`);
+      }
+
+      function openXShare(text) {
+        dismissShareFallback();
+        const url = "https://x.com/intent/tweet?text=" + encodeURIComponent(text);
+        // Open a same-origin blank window first so popup-block detection is reliable.
+        let popup = null;
+        try {
+          popup = window.open("about:blank", "_blank");
+          if (popup) {
+            popup.opener = null;
+            if (popup.opener !== null) throw new Error("Cannot detach opener");
+            const referrer = popup.document.createElement("meta");
+            referrer.name = "referrer";
+            referrer.content = "no-referrer";
+            popup.document.head.appendChild(referrer);
+            popup.location.replace(url);
+            return;
+          }
+        } catch (_) {
+          if (popup) { try { popup.close(); } catch (_) {} }
+        }
+        document.getElementById("shareFallbackText").value = text;
+        document.getElementById("shareFallback").classList.add("show");
+        document.getElementById("copyShareButton").focus();
+      }
+
+      async function copyText(text) {
+        const generation = shareGeneration;
+        const modern = Boolean(navigator.clipboard && window.isSecureContext);
+        try {
+          if (modern) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            fallbackCopy(text);
+          }
+          if (generation === shareGeneration) showToast(t("copied"));
+        } catch (_) {
+          if (generation !== shareGeneration) return;
+          if (!modern) { showToast(t("copyFailed")); return; }
+          try {
+            fallbackCopy(text);
+            if (generation === shareGeneration) showToast(t("copied"));
+          } catch (_) {
+            if (generation === shareGeneration) showToast(t("copyFailed"));
+          }
+        }
+      }
+
+      function fallbackCopy(text) {
+        const previousFocus = document.activeElement;
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "readonly");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        document.body.appendChild(textarea);
+        try {
+          textarea.focus();
+          textarea.select();
+          const ok = document.execCommand("copy");
+          if (!ok) throw new Error("copy failed");
+        } finally {
+          textarea.remove();
+          try { if (previousFocus) previousFocus.focus({ preventScroll: true }); } catch (_) {}
+        }
+      }
+
+      function dismissShareFallback(restoreFocus = false) {
+        shareGeneration += 1;
+        document.getElementById("shareFallback").classList.remove("show");
+        if (restoreFocus) (state.status === "result" ? el.shareResultButton : el.shareGameButton).focus();
+      }
+
+      function showToast(message) {
+        window.clearTimeout(toastTimer);
+        el.toast.textContent = message;
+        el.toast.classList.add("show");
+        toastTimer = window.setTimeout(() => {
+          el.toast.classList.remove("show");
+        }, 1000);
+      }
+
+      function openRules() {
+        C.sound("select");
+        el.rulesModal.classList.add("show");
+        el.closeRulesButton.focus();
+      }
+
+      function closeRules() {
+        el.rulesModal.classList.remove("show");
+        el.rulesButton.focus();
+      }
+
+      function goLab() {
+        window.location.href = LAB_URL;
+      }
+
+      function finishToHome() {
+        stopGameLoop();
+        dismissShareFallback();
+        rankingRequestId += 1;
+        updateBestScoreText();
+        showScreen("home");
+      }
+
+      function renderLocale() {
+        C.applyText(document);
+        document.getElementById("nameSaveStatus").textContent = nameSaveFailed ? t("storageFailed") : "";
+        updateBestScoreText();
+        updatePlayerNameViews();
+        updateGameHud();
+        if (state.status === "result") renderResult();
+        if (rankingStatusKey === "rankingTop") renderRankingList(rankingRows);
+        else el.rankingStatus.textContent = t(rankingStatusKey);
+        if (currentZoneAssignments) applyZoneAssignments(currentZoneAssignments);
+        document.querySelector(".countdown-preview").setAttribute("aria-label", t("preview"));
+        screens.game.setAttribute("aria-label", t("gameScreen"));
+        el.gameField.setAttribute("aria-label", t("field"));
+        el.toast.textContent = "";
+      }
+
+      function bindEvents() {
+        el.startButton.addEventListener("click", requestGameStart);
+        el.rulesButton.addEventListener("click", openRules);
+        // Name input never starts the game (including IME confirmation).
+        el.homeNameInput.addEventListener("input", persistHomeName);
+        document.getElementById("languageSelect").addEventListener("change", (event) => {
+          if (state.status === "game" || state.status === "countdown") return;
+          C.setLanguage(event.target.value);
+          renderLocale();
+        });
+        document.getElementById("soundButton").addEventListener("click", () => C.toggleSound());
+        document.getElementById("volumeInput").addEventListener("input", (event) => C.setVolume(Number(event.target.value) / 100));
+        document.getElementById("copyShareButton").addEventListener("click", () => copyText(document.getElementById("shareFallbackText").value));
+        document.getElementById("closeShareButton").addEventListener("click", () => dismissShareFallback(true));
+        document.addEventListener("pointerdown", (event) => {
+          if (event.target.closest("#soundButton, #volumeInput")) return;
+          C.unlockAudio();
+        }, { capture: true, passive: true });
+        document.addEventListener("visibilitychange", () => { if (document.hidden) C.silence(); });
+        el.closeRulesButton.addEventListener("click", closeRules);
+        el.rulesModal.addEventListener("click", (event) => {
+          if (event.target === el.rulesModal) closeRules();
+        });
+        el.shareGameButton.addEventListener("click", shareGame);
+        el.retireButton.addEventListener("click", retireGame);
+        el.shareResultButton.addEventListener("click", shareResult);
+      el.refreshRankingButton.addEventListener("click", () => loadResultRanking({ force: true }));
+        el.retryButton.addEventListener("click", requestGameStart);
+        el.finishButton.addEventListener("click", finishToHome);
+        el.labButtonHome.addEventListener("click", goLab);
+        el.labButtonResult.addEventListener("click", goLab);
+        el.submitScoreButton.addEventListener("click", () => submitScore());
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            if (el.rulesModal.classList.contains("show")) closeRules();
+            if (document.getElementById("shareFallback").classList.contains("show")) dismissShareFallback(true);
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          if (state.status !== "game") return;
+          const { centers } = getFieldMetrics();
+          activeItems.forEach((item) => {
+            if (!item.dragging && !item.processed) {
+              item.x = centers[item.lane];
+              placeItemNode(item);
+            }
+          });
+        });
+
+        let lastTouchEnd = 0;
+        document.addEventListener("touchend", (event) => {
+          const now = Date.now();
+          const interactive = event.target.closest("input, textarea, button, a, [contenteditable='true']");
+          const shouldGuard = state.status === "game" || state.status === "countdown";
+          if (shouldGuard && !interactive && now - lastTouchEnd <= 320) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, { passive: false });
+      }
+
+      function init() {
+        C.init(document);
+        el.homeNameInput.value = getStoredPlayerName();
+        applyZoneAssignments(makeZoneAssignments());
+        renderLocale();
+        bindEvents();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
