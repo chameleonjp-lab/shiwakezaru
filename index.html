@@ -1220,7 +1220,10 @@
     .btn, .ranking-refresh-btn { white-space: normal; overflow-wrap: anywhere; }
     .x-share { background: #000 !important; color: #fff !important; }
     .home-screen, .result-screen { align-items: flex-start; }
-    .home-screen > .card, .result-screen > .card { margin-block: auto; }
+    .result-screen > .card { margin-block: auto; }
+    .home-screen > .card { margin-block: 0; }
+    .home-language { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; text-align:left; }
+    .home-language select { font:inherit; min-height:44px; max-width:100%; }
     .player-box { display: block; }
     .player-box input { width: 100%; margin-top: 6px; }
     .settings { display: grid; gap: 10px; margin: 12px 0; }
@@ -1238,6 +1241,9 @@
   <main id="app" class="app">
     <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
       <div class="card">
+        <label class="home-language" for="languageSelect">
+          <span data-i18n="language">言語</span><select id="languageSelect"></select>
+        </label>
         <div class="title-block">
           <div class="game-mark" aria-hidden="true">🐵</div>
           <h1 id="homeTitle">仕分けざる</h1>
@@ -1256,7 +1262,6 @@
           <p id="nameSaveStatus" role="status"></p>
         </div>
         <div class="settings">
-          <label><span data-i18n="language">言語</span><select id="languageSelect"></select></label>
           <button id="soundButton" class="btn secondary" type="button" aria-pressed="true">音：オン</button>
           <label><span data-i18n="volume">音量</span><input id="volumeInput" type="range" min="0" max="100" value="35" /></label>
         </div>
