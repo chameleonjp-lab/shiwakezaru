@@ -12,7 +12,11 @@ assert.ok(source.includes('p_limit: 30'), 'Existing bounded ranking RPC requests
 assert.ok(source.includes('Object.freeze({'), 'Freeze per-play data');
 assert.ok(source.includes('requestId !== rankingRequestId'), 'Reject stale ranking responses');
 assert.ok(source.includes('https://chameleonjp-lab.github.io/chameleonjp_lab/ranking.html?game=shiwakezaru'), 'Use observed detail URL');
-assert.ok(source.includes('https://chameleonjp.codeberg.page/shiwakezaru/'), 'Keep confirmed old URL until new publication verified');
+assert.ok(source.includes('https://chameleonjp-lab.github.io/shiwakezaru/'), 'Use the intended GitHub Pages URL in this branch');
+assert.ok(source.includes('<link rel="canonical" href="https://chameleonjp-lab.github.io/shiwakezaru/"'));
+assert.ok(source.includes('<meta property="og:image" content="https://chameleonjp-lab.github.io/shiwakezaru/social-card.jpg"'));
+assert.ok(source.includes('<meta name="twitter:image" content="https://chameleonjp-lab.github.io/shiwakezaru/social-card.jpg"'));
+assert.equal(fs.readFileSync(path.join(root,'social-card.jpg')).readUInt16BE(0), 0xffd8);
 assert.ok(!source.includes('navigator.share'), 'Use X intent, not native share');
 assert.ok(!source.includes('normalizePlayerName(name) === currentName'), 'Do not identify people by display name');
 console.log('PASS: preserved rules and static integration contracts');
