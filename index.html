@@ -1738,6 +1738,8 @@
         state.status = "game";
         state.sequence = makeSequence();
         state.startedAt = Date.now();
+      void import(/* @vite-ignore */ "https://chameleonjp-lab.github.io/chameleonjp_lab/play-start.js").then(module => module.recordPlayStart("shiwakezaru")).catch(() => {});
+
         activeItems = [];
         itemIdSeq = 1;
         dragItem = null;
